@@ -36,10 +36,19 @@ func main() {
 	// Goroutines 는 호출하려는 func 앞에 go라고 붙여줌으로써 동시에 진행됨.
 	// 다만 main은 goroutine을 기다려주지 않기때문에 호출하는 모든 함수에 go를 붙이면 아무런 일도 일어나지 않고 끝나버림.
 	// goroutine은 main이 실행중일 때에만 동작할 수 있기 때문.
-	go count("Hannah")
-	go count("Santi")
-	time.Sleep(time.Second * 5)
+	// go count("Hannah")
+	// go count("Santi")
+	// time.Sleep(time.Second * 5)
 
+	// Channel & make()
+	channel := make(chan bool)
+	people := [2]string{"Hannah", "Santi"}
+	for _, person := range people {
+		go isOkay(person, channel)
+	}
+	// result := <-channel // channel로 부터 뭔가를 받으려고 기다리는 동안에는 main이 살아있음.
+	fmt.Println(<-channel)
+	fmt.Println(<-channel)
 }
 
 func hitURL(url string) error {
@@ -57,4 +66,10 @@ func count(person string) {
 		fmt.Println(person, "is sexy", i)
 		time.Sleep(time.Second)
 	}
+}
+
+func isOkay(person string, channel chan bool) {
+	time.Sleep(time.Second * 5)
+	fmt.Println(person)
+	channel <- true // channel에 true를 보낸다는 의미.
 }
