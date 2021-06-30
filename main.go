@@ -41,14 +41,18 @@ func main() {
 	// time.Sleep(time.Second * 5)
 
 	// Channel & make()
-	channel := make(chan bool)
+	channel := make(chan string)
 	people := [2]string{"Hannah", "Santi"}
 	for _, person := range people {
 		go isOkay(person, channel)
 	}
 	// result := <-channel // channel로 부터 뭔가를 받으려고 기다리는 동안에는 main이 살아있음.
-	fmt.Println(<-channel)
-	fmt.Println(<-channel)
+	fmt.Println("waiting for a message")
+	// fmt.Println(<-channel)
+	// fmt.Println(<-channel) // '<-' 이 표현은 blocking operation이어서 메세지를 기다림.
+	for i := 0; i < len(people); i++ {
+		fmt.Println(<-channel)
+	}
 }
 
 func hitURL(url string) error {
@@ -68,8 +72,7 @@ func count(person string) {
 	}
 }
 
-func isOkay(person string, channel chan bool) {
-	time.Sleep(time.Second * 5)
-	fmt.Println(person)
-	channel <- true // channel에 true를 보낸다는 의미.
+func isOkay(person string, channel chan string) {
+	time.Sleep(time.Second * 10)
+	channel <- person + " is okay" // channel에 <- 뒤쪽의 값를 보낸다는 의미.
 }
