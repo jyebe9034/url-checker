@@ -7,28 +7,35 @@ import (
 	"time"
 )
 
+type result struct {
+	url    string
+	status string
+}
+
 var errRequestFailed = errors.New("request failed")
 
 func main() {
 	// var results map[string]string 초기화 되지 않은 map에는 값을 넣을 수 있다. 왜냐면 results가 nil이기 때문!
-	// var results = make(map[string]string)
-	// urls := []string{
-	// 	"https://www.google.com",
-	// 	"https://www.facebook.com",
-	// 	"https://www.airbnb.com",
-	// 	"https://www.amazon.com",
-	// 	"https://www.reddit.com",
-	// 	"https://www.instagram.com",
-	// }
+	// results := make(map[string]string)
+	c := make(chan result)
+	urls := []string{
+		"https://www.google.com",
+		"https://www.facebook.com",
+		"https://www.airbnb.com",
+		"https://www.amazon.com",
+		"https://www.reddit.com",
+		"https://www.instagram.com",
+	}
 
-	// for _, url := range urls {
-	// 	result := "OK"
-	// 	err := hitURL(url)
-	// 	if err != nil {
-	// 		result = "FAILED"
-	// 	}
-	// 	results[url] = result
-	// }
+	for _, url := range urls {
+		go hitURL(url, c)
+		// result := "OK"
+		// err := hitURL(url)
+		// if err != nil {
+		// 	result = "FAILED"
+		// }
+		// results[url] = result
+	}
 	// for url, result := range results {
 	// 	fmt.Println(url, result)
 	// }
@@ -41,28 +48,31 @@ func main() {
 	// time.Sleep(time.Second * 5)
 
 	// Channel & make()
-	channel := make(chan string)
-	people := [2]string{"Hannah", "Santi"}
-	for _, person := range people {
-		go isOkay(person, channel)
-	}
+	// channel := make(chan string)
+	// people := [2]string{"Hannah", "Santi"}
+	// for _, person := range people {
+	// 	go isOkay(person, channel)
+	// }
 	// result := <-channel // channel로 부터 뭔가를 받으려고 기다리는 동안에는 main이 살아있음.
-	fmt.Println("waiting for a message")
+	// fmt.Println("waiting for a message")
 	// fmt.Println(<-channel)
 	// fmt.Println(<-channel) // '<-' 이 표현은 blocking operation이어서 메세지를 기다림.
-	for i := 0; i < len(people); i++ {
-		fmt.Println(<-channel)
-	}
+	// for i := 0; i < len(people); i++ {
+	// 	fmt.Println(<-channel)
+	// }
 }
 
-func hitURL(url string) error {
+func hitURL(url string, c chan<- result) { // chan<-는 send only라는 의미
 	fmt.Println("checking: ", url)
 	resp, err := http.Get(url)
+	status := "OK"
 	if err != nil || resp.StatusCode >= 400 {
-		fmt.Println(err, resp.StatusCode)
-		return errRequestFailed
+		status = "FAILED"
+		// fmt.Println(err, resp.StatusCode)
+		// return errRequestFailed
 	}
-	return nil
+	// return nil
+	c <- result{url: url, status: status}
 }
 
 func count(person string) {
