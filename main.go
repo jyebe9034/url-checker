@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type result struct {
+type requestResult struct {
 	url    string
 	status string
 }
@@ -16,8 +16,8 @@ var errRequestFailed = errors.New("request failed")
 
 func main() {
 	// var results map[string]string 초기화 되지 않은 map에는 값을 넣을 수 있다. 왜냐면 results가 nil이기 때문!
-	// results := make(map[string]string)
-	c := make(chan result)
+	results := make(map[string]string)
+	c := make(chan requestResult)
 	urls := []string{
 		"https://www.google.com",
 		"https://www.facebook.com",
@@ -29,16 +29,16 @@ func main() {
 
 	for _, url := range urls {
 		go hitURL(url, c)
-		// result := "OK"
-		// err := hitURL(url)
-		// if err != nil {
-		// 	result = "FAILED"
-		// }
-		// results[url] = result
 	}
-	// for url, result := range results {
-	// 	fmt.Println(url, result)
-	// }
+
+	for i := 0; i < len(urls); i++ {
+		result := <-c
+		results[result.url] = result.status
+	}
+
+	for url, result := range results {
+		fmt.Println(url, result)
+	}
 
 	// Goroutines 는 호출하려는 func 앞에 go라고 붙여줌으로써 동시에 진행됨.
 	// 다만 main은 goroutine을 기다려주지 않기때문에 호출하는 모든 함수에 go를 붙이면 아무런 일도 일어나지 않고 끝나버림.
@@ -62,8 +62,7 @@ func main() {
 	// }
 }
 
-func hitURL(url string, c chan<- result) { // chan<-는 send only라는 의미
-	fmt.Println("checking: ", url)
+func hitURL(url string, c chan<- requestResult) { // chan<-는 send only라는 의미
 	resp, err := http.Get(url)
 	status := "OK"
 	if err != nil || resp.StatusCode >= 400 {
@@ -72,7 +71,7 @@ func hitURL(url string, c chan<- result) { // chan<-는 send only라는 의미
 		// return errRequestFailed
 	}
 	// return nil
-	c <- result{url: url, status: status}
+	c <- requestResult{url: url, status: status}
 }
 
 func count(person string) {
